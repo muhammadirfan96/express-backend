@@ -1,12 +1,12 @@
-const sequelize = require("sequelize");
+const { DataTypes } = require("sequelize");
 const db = require("../config/Database");
 
 const ProductModel = db.define(
   "product",
   {
-    name: sequelize.DataTypes.STRING,
-    price: sequelize.DataTypes.INTEGER,
-    photo: sequelize.DataTypes.STRING,
+    name: DataTypes.STRING,
+    price: DataTypes.INTEGER,
+    photo: DataTypes.STRING,
   },
   {
     freezeTableName: true,

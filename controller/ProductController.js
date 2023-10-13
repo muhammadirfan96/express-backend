@@ -1,10 +1,9 @@
 const { Op } = require("sequelize");
 const ProductModel = require("../models/ProductModel");
-const multer = require("multer");
-const { storage, filefilter } = require("../config/Multer");
 const { unlink, existsSync } = require("fs");
 const { validationResult } = require("express-validator");
 const upload = require("../config/Multer");
+const multer = require("multer");
 
 exports.showProduct = async (req, res) => {
   try {
@@ -42,13 +41,13 @@ exports.findProduct = async (req, res) => {
       limit: parseInt(req.params.limit),
       offset: parseInt(req.params.offset),
     });
-    res.json(response.rows);
+    res.json(response);
   } catch (error) {
     console.log(error);
   }
 };
 
-exports.createProduct = (req, res) => {
+exports.createProduct = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -57,10 +56,9 @@ exports.createProduct = (req, res) => {
     const data = {
       name: req.body.name,
       price: req.body.price,
-      photo: req.file.path,
     };
-    console.log(data);
-    ProductModel.create(data);
+
+    await ProductModel.create(data);
     res.status(201).json({ message: "data inserted" });
   } catch (error) {
     console.log(error);
@@ -72,35 +70,17 @@ exports.updateProduct = async (req, res) => {
     const response = await ProductModel.findByPk(req.params.id);
     if (!response) return res.status(404).json({ message: "no data found" });
 
-    const upload = multer({ storage: storage }).single("photo");
-    upload(req, res, (err) => {
-      if (req.file.fieldname !== "photo") {
-        // jgn validasi foto
-        //
-      }
+    let data = {
+      name: req.body.name,
+      price: req.body.price,
+    };
 
-      let data = {
-        name: req.body.name,
-        price: req.body.price,
-      };
-
-      if (req.file.fieldname === "photo") {
-        data.photo = req.file.path;
-
-        if (existsSync(response.photo))
-          unlink(response.photo, (err) => {
-            if (err)
-              return res.status(500).json({ message: "failed to delete" });
-          });
-      }
-
-      ProductModel.update(data, {
-        where: {
-          id: req.params.id,
-        },
-      });
-      res.status(200).json({ message: "data updated" });
+    await ProductModel.update(data, {
+      where: {
+        id: req.params.id,
+      },
     });
+    res.status(200).json({ message: "data updated" });
   } catch (error) {
     console.log(error);
   }
@@ -111,10 +91,7 @@ exports.deleteProduct = async (req, res) => {
     const response = await ProductModel.findByPk(req.params.id);
     if (!response) return res.status(404).json({ message: "no data found" });
 
-    if (existsSync(response.photo))
-      unlink(response.photo, (err) => {
-        if (err) return res.status(500).json({ message: "failed to delete" });
-      });
+    if (existsSync(response.photo)) unlink(response.photo, () => null);
 
     await ProductModel.destroy({
       where: {
@@ -122,6 +99,35 @@ exports.deleteProduct = async (req, res) => {
       },
     });
     res.status(200).json({ message: "data deleted" });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.uploadImage = async (req, res) => {
+  try {
+    const response = await ProductModel.findByPk(req.params.id);
+    if (!response) return res.status(404).json({ message: "no data found" });
+
+    upload.single("photo")(req, res, function (err) {
+      if (err instanceof multer.MulterError) {
+        return res.status(500).json({ message: "max size is 1 MB" });
+      } else if (err) {
+        return res.status(500).json({ message: "just receive a valid image" });
+      }
+
+      if (existsSync(response.photo)) unlink(response.photo, () => null);
+
+      ProductModel.update(
+        { photo: req.file.path },
+        {
+          where: {
+            id: req.params.id,
+          },
+        }
+      );
+      res.status(200).json({ message: "photo updated" });
+    });
   } catch (error) {
     console.log(error);
   }

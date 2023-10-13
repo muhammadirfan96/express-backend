@@ -9,7 +9,6 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(ProductRoutes);
 app.use("/uploads-img", express.static(path.join(__dirname, "uploads-img")));
 

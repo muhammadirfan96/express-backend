@@ -1,18 +1,13 @@
 const express = require("express");
 const ProductController = require("../controller/ProductController");
-const { productRules } = require("../config/ExpressValidation");
+const ProductRules = require("../validations/ProductValidation");
 const router = express.Router();
-const upload = require("../config/Multer");
 
 router.get("/product/:id", ProductController.showProduct);
 router.get("/product/:key/:limit/:offset", ProductController.findProduct);
-router.post(
-  "/product",
-  upload.single("photo"),
-  productRules,
-  ProductController.createProduct
-);
-router.patch("/product/:id", ProductController.updateProduct);
+router.post("/product", ProductRules, ProductController.createProduct);
+router.patch("/product/:id", ProductRules, ProductController.updateProduct);
 router.delete("/product/:id", ProductController.deleteProduct);
+router.patch("/img-product/:id", ProductController.uploadImage);
 
 module.exports = router;

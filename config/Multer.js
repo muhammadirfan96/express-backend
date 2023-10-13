@@ -13,16 +13,16 @@ const filefilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image/")) {
     cb(null, true);
   } else {
-    cb(new Error("what you oploaded is not image"), false);
-  }
-
-  if (file.size < 1000000) {
-    cb(null, true);
-  } else {
-    cb(new Error("size can not more than 1 MB"), false);
+    cb(new Error(), false);
   }
 };
 
-const upload = multer({ storage: storage, fileFilter: filefilter });
+const upload = multer({
+  storage: storage,
+  fileFilter: filefilter,
+  limits: {
+    fileSize: 1024 * 1024,
+  },
+});
 
 module.exports = upload;
