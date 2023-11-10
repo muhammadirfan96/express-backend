@@ -1,17 +1,31 @@
-GET http://localhost:5000/product/3
+GET http://localhost:5000/product
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjgsImVtYWlsIjoibXVoYW1tYWRpcmZhbmlyZmFuaTgwOEBnbWFpbC5jb20iLCJpYXQiOjE2OTk2MzMzMDEsImV4cCI6MTY5OTYzMzMxNn0.csapzetcCUsaVsn2CgKrGgFdmEL5KWMooylM_DaK2F0
 
 ###
-GET http://localhost:5000/product/*/7/0
+GET http://localhost:5000/user?limit=5
 
 
 ###
-POST http://localhost:5000/product
+POST http://localhost:5000/user/register
 content-type: application/json
 
 {
-    "name": "lem kertas",
-    "price": 4500
+    "email": "muhammadirfanirfani808@gmail.com",
+    "password": "123456",
+    "confPassword": "12345"
 }
+
+###
+POST http://localhost:5000/user/login
+content-type: application/json
+
+{
+    "email": "muhammadirfanirfani808@gmail.com",
+    "password": "654321"
+}
+
+###
+GET http://localhost:5000/user/refresh-token
 
 ###
 PATCH  http://localhost:5000/product/3
@@ -23,4 +37,22 @@ content-type: application/json
 }
 
 ###
-DELETE http://localhost:5000/product/5
+DELETE http://localhost:5000/user/4
+
+###
+POST http://localhost:5000/user/forgot-password
+content-type: application/json
+
+{
+    "email": "muhammadirfanirfani808@gmail.com"
+}
+
+###
+POST http://localhost:5000/user/reset-password
+content-type: application/json
+
+{
+    "emailTokn": "518962",
+    "newPassword": "654321",
+    "confPassword": "654321"
+}

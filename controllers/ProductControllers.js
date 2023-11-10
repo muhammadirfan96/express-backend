@@ -5,7 +5,7 @@ const { validationResult } = require("express-validator");
 const upload = require("../config/Multer");
 const multer = require("multer");
 
-exports.showProduct = async (req, res) => {
+exports.show = async (req, res) => {
   try {
     const response = await ProductModel.findByPk(req.params.id);
     if (!response) return res.status(404).json({ message: "no data found" });
@@ -15,39 +15,33 @@ exports.showProduct = async (req, res) => {
   }
 };
 
-exports.findProduct = async (req, res) => {
+exports.find = async (req, res) => {
   try {
-    let where = null;
-    if (req.params.key.includes("@")) {
-      const field = req.params.key.split("@")[0];
-      const value = req.params.key.split("@")[1];
-      if (field == "name") {
-        where = {
-          name: {
-            [Op.like]: `%${value}%`,
-          },
-        };
-      }
-      if (field == "price") {
-        where = {
-          price: {
-            [Op.like]: `%${value}%`,
-          },
-        };
-      }
-    }
+    const name = req.query.name ?? "";
+    const price = req.query.price ?? "";
+    const limit = parseInt(req.query.limit ?? 10);
+    const page = parseInt(req.query.page ?? 1);
+    const offset = limit * page - limit;
+    const where = {
+      name: {
+        [Op.like]: `%${name}%`,
+      },
+      price: {
+        [Op.like]: `%${price}%`,
+      },
+    };
     const response = await ProductModel.findAndCountAll({
       where: where,
-      limit: parseInt(req.params.limit),
-      offset: parseInt(req.params.offset),
+      limit: limit,
+      offset: offset,
     });
-    res.json(response);
+    return res.status(200).json(response);
   } catch (error) {
     console.log(error);
   }
 };
 
-exports.createProduct = async (req, res) => {
+exports.create = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -65,7 +59,7 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-exports.updateProduct = async (req, res) => {
+exports.update = async (req, res) => {
   try {
     const response = await ProductModel.findByPk(req.params.id);
     if (!response) return res.status(404).json({ message: "no data found" });
@@ -75,29 +69,21 @@ exports.updateProduct = async (req, res) => {
       price: req.body.price,
     };
 
-    await ProductModel.update(data, {
-      where: {
-        id: req.params.id,
-      },
-    });
+    await ProductModel.update(data, { where: { id: req.params.id } });
     res.status(200).json({ message: "data updated" });
   } catch (error) {
     console.log(error);
   }
 };
 
-exports.deleteProduct = async (req, res) => {
+exports.remove = async (req, res) => {
   try {
     const response = await ProductModel.findByPk(req.params.id);
     if (!response) return res.status(404).json({ message: "no data found" });
 
     if (existsSync(response.photo)) unlink(response.photo, () => null);
 
-    await ProductModel.destroy({
-      where: {
-        id: req.params.id,
-      },
-    });
+    await ProductModel.destroy({ where: { id: req.params.id } });
     res.status(200).json({ message: "data deleted" });
   } catch (error) {
     console.log(error);
@@ -120,11 +106,7 @@ exports.uploadImage = async (req, res) => {
 
       ProductModel.update(
         { photo: req.file.path },
-        {
-          where: {
-            id: req.params.id,
-          },
-        }
+        { where: { id: req.params.id } }
       );
       res.status(200).json({ message: "photo updated" });
     });
